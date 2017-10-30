@@ -13,7 +13,7 @@
     "url": "https://github.com/rendaw/qrscan-es6.git"
   },
   "author": "",
-  "license": "ISC",
+  "license": ["Apache 2.0", "ISC"],
   "bugs": {
     "url": "https://github.com/rendaw/qrscan-es6/issues"
   },
