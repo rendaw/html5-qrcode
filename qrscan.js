@@ -1,9 +1,9 @@
-import qrcode from './lib/qrcode'
+import qrcode from './lib/qrcode.js'
 
 const qrscan = {
 	start: (mount, qrcodeSuccess, qrcodeError, videoError) => {
-		let width = mount.width()
-		let height = mount.height()
+		let width = mount.clientWidth
+		let height = mount.clientHeight
 
 		if (width == null) {
 			width = 300
@@ -16,11 +16,11 @@ const qrscan = {
 		const video = document.createElement('video')
 		video.setAttribute('width', String(width) + 'px')
 		video.setAttribute('height', String(height) + 'px')
+		video.setAttribute('autoplay', '')
 		mount.appendChild(video)
 		const canvas = document.createElement('canvas')
 		canvas.setAttribute('width', String(width) + 'px')
 		canvas.setAttribute('height', String(height) + 'px')
-		canvas.setAttribute('autoplay', '')
 		canvas.style.display = 'none'
 		mount.appendChild(canvas)
 
@@ -30,15 +30,13 @@ const qrscan = {
 		}
 
 		const scan = () => {
-			if (data.stream !== null) {
-				context.drawImage(video, 0, 0, width, height)
-				try {
-					qrcode.decode(canvas)
-				} catch (e) {
-					qrcodeError(e, data.stream)
-				}
+			if (data.stream === null) return
+			context.drawImage(video, 0, 0, width, height)
+			try {
+				qrcode.decode(canvas)
+			} catch (e) {
+				qrcodeError(e, data.stream)
 			}
-			data.timeout = setTimeout(scan, 500)
 		}
 
 		navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia
@@ -47,7 +45,7 @@ const qrscan = {
 			video.src = window.URL.createObjectURL(stream)
 			data.stream = stream
 			video.play()
-			data.timeout = setTimeout(scan, 1000)
+			data.timeout = setInterval(scan, 500)
 		}
 
 		navigator.getUserMedia({video: true}, successCallback, error => {
@@ -62,7 +60,7 @@ const qrscan = {
 	},
 	stop: data => {
 		data.stream.getVideoTracks().forEach(track => track.stop())
-		clearTimeout(data.timeout)
+		clearInterval(data.timeout)
 	},
 }
 
