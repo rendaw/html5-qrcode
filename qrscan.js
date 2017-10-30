@@ -1,4 +1,4 @@
-import { qrcode } from 'lib/QRCode'
+import qrcode from './lib/qrcode'
 
 const qrscan = {
 	start: (mount, qrcodeSuccess, qrcodeError, videoError) => {
@@ -18,8 +18,8 @@ const qrscan = {
 		video.setAttribute('height', String(height) + 'px')
 		mount.appendChild(video)
 		const canvas = document.createElement('canvas')
-		canvas.setAttribute('width', String(width - 2) + 'px')
-		canvas.setAttribute('height', String(height - 2) + 'px')
+		canvas.setAttribute('width', String(width) + 'px')
+		canvas.setAttribute('height', String(height) + 'px')
 		canvas.setAttribute('autoplay', '')
 		canvas.style.display = 'none'
 		mount.appendChild(canvas)
@@ -31,7 +31,7 @@ const qrscan = {
 
 		const scan = () => {
 			if (data.stream !== null) {
-				context.drawImage(video, 0, 0, width - 2, height - 2)
+				context.drawImage(video, 0, 0, width, height)
 				try {
 					qrcode.decode(canvas)
 				} catch (e) {
