@@ -1,0 +1,31 @@
+<html>
+	<head><title>QR Scanner Demo</title></head>
+	<body>
+		<div id="scanner" style="width:300px;height:250px"></div>
+		<div id="text"></div>
+		<script type="module">
+import qrscan from './qrscan.js'
+const scanner = document.getElementById('scanner')
+const text = document.getElementById('text')
+let index = 0
+qrscan.start(
+	scanner,
+	v => {
+		text.innerHTML = ''
+		text.appendChild(document.createTextNode('success (' + index + '): ' + String(v)))
+		index += 1
+	},
+	e => {
+		text.innerHTML = ''
+		text.appendChild(document.createTextNode('error1 (' + index + '): ' + String(e)))
+		index += 1
+	},
+	e => {
+		text.innerHTML = ''
+		text.appendChild(document.createTextNode('error2 (' + index + '): ' + String(e)))
+		index += 1
+	},
+)
+		</script>
+	</body>
+</html>
