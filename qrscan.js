@@ -16,7 +16,7 @@ const qrscan = {
 		navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia
 		const stream = await new Promise((resolve, reject) => {
 			try {
-				navigator.getUserMedia({video: {facingMode: 'environment'}}, resolve, reject)
+				navigator.getUserMedia({video: {facingMode: 'environment'}, audio: false}, resolve, reject)
 			} catch (e) {
 				reject(e)
 			}
@@ -63,7 +63,7 @@ const qrscan = {
 			gcontext.drawImage(video, 0, 0, width, height)
 			let result
 			try {
-				result = qrcode.decode(canvas, bwOut)
+				result = qrcode.decode({canvas, bwOut})
 			} catch (e) {
 				if (debugInfoCallback)
 					debugInfoCallback(e, stream)
