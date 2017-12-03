@@ -1,6 +1,11 @@
 import qrcode from './lib/qrcode.js'
 const qrscan = {
-	start: async (mount, qrcodeSuccess, qrcodeError, debugMount) => {
+	start: async ({
+		mount,
+		qrcodeSuccess,
+		debugInfoCallback,
+		debugBW,
+	}) => {
 		const data = {
 			canceled: false,
 			stream: null,
@@ -46,11 +51,11 @@ const qrscan = {
 		canvas.style.display = 'none'
 		mount.appendChild(canvas)
 		const gcontext = canvas.getContext('2d')
-		let debugGContext
-		if (debugMount) {
-			const c2 = createCanvas()
-			debugGContext = c2.getContext('2d')
-			debugMount.appendChild(c2)
+		let bwOut
+		if (debugBW) {
+			const bwCanvas = createCanvas()
+			bwOut = bwCanvas.getContext('2d')
+			mount.appendChild(bwCanvas)
 		}
 		const scan = () => {
 			if (data.canceled)
@@ -58,10 +63,10 @@ const qrscan = {
 			gcontext.drawImage(video, 0, 0, width, height)
 			let result
 			try {
-				result = qrcode.decode(canvas, debugGContext)
+				result = qrcode.decode(canvas, bwOut)
 			} catch (e) {
-				if (qrcodeError)
-					qrcodeError(e, stream)
+				if (debugInfoCallback)
+					debugInfoCallback(e, stream)
 				return
 			}
 			if (result !== null) {
