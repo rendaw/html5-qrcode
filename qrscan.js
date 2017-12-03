@@ -1,68 +1,74 @@
 import qrcode from './lib/qrcode.js'
-
 const qrscan = {
-	start: (mount, qrcodeSuccess, qrcodeError, videoError) => {
-		const video = document.createElement('video')
-		video.setAttribute('autoplay', '')
-		video.setAttribute('width', '100%')
-		mount.appendChild(video)
-
+	start: async (mount, qrcodeSuccess, qrcodeError, debugMount) => {
 		const data = {
 			canceled: false,
 			stream: null,
 			timeout: null,
 		}
 
-		setTimeout(() => {
-			if (data.canceled) {
-				return
+		// 1. Open the camera
+		navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia
+		const stream = await new Promise((resolve, reject) => {
+			try {
+				navigator.getUserMedia({video: {facingMode: 'environment'}}, resolve, reject)
+			} catch (e) {
+				reject(e)
 			}
-			let width = mount.clientWidth
-			let height = mount.clientHeight
+		})
 
-			if (width == null) {
-				width = 300
-			}
+		// 2. Create the video output element and route the camera to it
+		const video = document.createElement('video')
+		video.setAttribute('autoplay', '')
+		video.setAttribute('playsinline', '') // disables fullscreen, enables autoplay ios 11
+		video.setAttribute('width', '100%')
+		video.srcObject = stream
+		mount.appendChild(video)
 
-			if (height == null) {
-				height = 250
-			}
+		// 3. Wait for layout to finish
+		await new Promise(r => setTimeout(r, 0))
 
+		// 4. Start video playback
+		await video.play()
+
+		// 5. Start processing
+		const width = mount.clientWidth
+		const ar = stream.getVideoTracks()[0].getSettings().aspectRatio
+		const height = Math.trunc(width / ar)
+
+		const createCanvas = () => {
 			const canvas = document.createElement('canvas')
 			canvas.setAttribute('width', String(width) + 'px')
 			canvas.setAttribute('height', String(height) + 'px')
-			canvas.style.display = 'none'
-			mount.appendChild(canvas)
-
-			const context = canvas.getContext('2d')
-
-			const scan = () => {
-				if (data.stream === null) return
-				context.drawImage(video, 0, 0, width, height)
-				try {
-					qrcode.decode(canvas)
-				} catch (e) {
-					qrcodeError(e, data.stream)
-				}
+			return canvas
+		}
+		const canvas = createCanvas()
+		canvas.style.display = 'none'
+		mount.appendChild(canvas)
+		const gcontext = canvas.getContext('2d')
+		let debugGContext
+		if (debugMount) {
+			const c2 = createCanvas()
+			debugGContext = c2.getContext('2d')
+			debugMount.appendChild(c2)
+		}
+		const scan = () => {
+			if (data.canceled)
+				return
+			gcontext.drawImage(video, 0, 0, width, height)
+			let result
+			try {
+				result = qrcode.decode(canvas, debugGContext)
+			} catch (e) {
+				if (qrcodeError)
+					qrcodeError(e, stream)
+				return
 			}
-
-			navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia
-
-			const successCallback = stream => {
-				video.src = window.URL.createObjectURL(stream)
-				data.stream = stream
-				video.play()
-				data.timeout = setInterval(scan, 500)
+			if (result !== null) {
+				qrcodeSuccess(result, stream)
 			}
-
-			navigator.getUserMedia({video: true}, successCallback, error => {
-				videoError(error, data.stream)
-			})
-
-			qrcode.callback = result => {
-				qrcodeSuccess(result, data.stream)
-			}
-		}, 0)
+		}
+		data.timeout = setInterval(scan, 500)
 
 		return data
 	},
