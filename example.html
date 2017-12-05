@@ -8,24 +8,14 @@ import qrscan from './qrscan.js'
 const scanner = document.getElementById('scanner')
 const text = document.getElementById('text')
 let index = 0
-qrscan.start(
-	scanner,
-	v => {
+qrscan.start({
+	mount: scanner,
+	successCallback: v => {
 		text.innerHTML = ''
 		text.appendChild(document.createTextNode('success (' + index + '): ' + String(v)))
 		index += 1
 	},
-	e => {
-		text.innerHTML = ''
-		text.appendChild(document.createTextNode('error1 (' + index + '): ' + String(e)))
-		index += 1
-	},
-	e => {
-		text.innerHTML = ''
-		text.appendChild(document.createTextNode('error2 (' + index + '): ' + String(e)))
-		index += 1
-	},
-)
+})
 		</script>
 	</body>
 </html>
