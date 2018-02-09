@@ -14,7 +14,7 @@
  *
  * Add this to your code: `import qrscan from 'qrscan`'
  *
- * @module qrscan QR Code Scanning module
+ * @module qrscan-es6
  */
 
 import qrcode from './lib/qrcode.js'
